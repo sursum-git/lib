@@ -1337,7 +1337,7 @@ function getVlIndiceArrayDireto($array,$indice,$vlPadrao)
 
 function getCssComum()
 {
-    //teste
+
     $css= <<<CSS
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
