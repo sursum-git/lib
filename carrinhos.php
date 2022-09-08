@@ -10,10 +10,10 @@ function montarFiltroCarrinho($aFiltros,$aApelidoTb)
     $aFiltroItem    = array();
     $aFiltroRefer   = array();
     $tabela ='ob-etiqueta';
-    $rp          = $aFiltroCond['rp'];
-    $rd          = $aFiltroCond['rd'];
-    $itCodigo   = $aFiltroCond['it_codigo'];
-    $codRefer   = $aFiltroCond['lista_cod_refer'];
+    $rp          = $aFiltros['rp'];
+    $rd          = $aFiltros['rd'];
+    $itCodigo   = $aFiltros['it_codigo'];
+    $codRefer   = $aFiltros['lista_cod_refer'];
 
 
     $aFiltroLote        = inserirArrayCond($aFiltroLote,$tabela,'lote',$rd,'=',false,true,'or');
