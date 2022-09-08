@@ -1045,9 +1045,11 @@ function convArrayToCondSql($arrayParam)
     */
     $vlFinal = '';
     $condicao = '';
-     echo "<h1>array cond sql</h1>";
-    var_dump($arrayParam);
     foreach($arrayParam as $chave=>$valor){
+        var_dump($chave);
+        var_dump($valor);
+        echo "<br>";
+
         $tabela      = $valor['tabela'];
         $campo		 = $valor['campo'];
         $campo       = convVlComTraco($campo);
