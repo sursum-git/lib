@@ -1094,15 +1094,18 @@ function convArrayMultiToCondSql($array)
         if(is_array($condicao)){
             $tamanho    = count($condicao);
             foreach($condicao as $cond){
+                echo "<h1>é array</h1>";
                 $textoCond  = util_incr_valor($textoCond,convArrayToCondSql($cond))  ;
+                echo "<h1>após conversão: $textoCond</h1>";
             }
             if($tamanho > 1){
                 $textoCond = "({$textoCond})";
             }
+            echo "<h2>$textoCond</h2>";
         }else{
             $textoCond = $condicao;
         }
-        echo "<h2>$textoCond</h2>";
+
 
         $condicao = util_incr_valor($condicao,$textoCond,$operadorCond);
     }
