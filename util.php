@@ -1045,8 +1045,9 @@ function convArrayToCondSql($arrayParam)
     */
     $vlFinal = '';
     $condicao = '';
-    foreach($arrayParam as $chave=>$valor){
-        echo "<h2>chave:$chave</h2>";
+    //foreach($arrayParam as $chave=>$valor){
+    foreach($arrayParam as $valor){
+        //echo "<h2>chave:$chave</h2>";
         var_dump($valor);
         echo "<br>";
 
