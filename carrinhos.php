@@ -20,12 +20,13 @@ function montarFiltroCarrinho($aFiltros,$aApelidoTb)
     $aFiltroLote        = inserirArrayCond($aFiltroLote,$tabela,'lote',$rp,'=',false,true,'or');
 
 
-    $aFiltroItem        = inserirArrayCond($aFiltroLote,$tabela,'it-codigo',$itCodigo,'=',false,true,'and');
-    $aFiltroCodRefer    = inserirArrayCond($aFiltroRefer,$tabela,'cod-refer',$codRefer,'=',false,true,'and');
+    $aFiltroItem        = inserirArrayCond($aFiltroItem,$tabela,'it-codigo',$itCodigo,'=',false,true,'and');
+    $aFiltroRefer       = inserirArrayCond($aFiltroRefer,$tabela,'cod-refer',$codRefer,'=',false,true,'and');
 
     $aFiltroCond        = inserirArrayCondMultiNivel($aFiltroCond,$aFiltroLote);
     $aFiltroCond        = inserirArrayCondMultiNivel($aFiltroCond,$aFiltroItem);
-    $aFiltroCond        = inserirArrayCondMultiNivel($aFiltroCond,$aFiltroCodRefer);
+    $aFiltroCond        = inserirArrayCondMultiNivel($aFiltroCond,$aFiltroRefer);
+    var_dump($aFiltroCond);
 
     return convArrayMultiToCondSql($aFiltroCond);
 }
