@@ -1071,6 +1071,7 @@ function convArrayToCondSql($array)
             $tabela = convVlComTraco($tabela);
             $campo = "{$tabela}.{$campo}";
         }
+        echo "<h1>campo: $campo - operador: $operador  - vl.final: $vlFinal</h1>";
         $condicao = util_incr_valor($condicao,"$campo $operador $vlFinal",$juncao);
 
     }
