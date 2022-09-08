@@ -10,7 +10,6 @@ function montarFiltroPedido($aFiltros,$aApelidoTb)
     $aFiltroCond = inserirArrayCond($aFiltroCond,$tabela,'nr-pedido',$listaPedidos,'in',true);
         
 
-    
     return convArrayToCondSql($aFiltroCond);
 }
 
