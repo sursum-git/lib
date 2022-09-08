@@ -3,15 +3,15 @@
 function montarFiltroCarrinho($aFiltros,$aApelidoTb)
 { /*********************************************** 
      chaves aFiltros: 
-     log_rp,log_rd,it_codigo,lista_cod_refer
+     rp,_rd,it_codigo,lista_cod_refer
     *********************************************/
     $aFiltroCond    = array();
     $aFiltroLote    = array();
     $aFiltroItem    = array();
     $aFiltroRefer   = array();
     $tabela ='ob-etiqueta';
-    $rp          = $aFiltroCond['log_rp'];
-    $rd          = $aFiltroCond['log_rd'];
+    $rp          = $aFiltroCond['rp'];
+    $rd          = $aFiltroCond['rd'];
     $itCodigo   = $aFiltroCond['it_codigo'];
     $codRefer   = $aFiltroCond['lista_cod_refer'];
 
@@ -26,6 +26,7 @@ function montarFiltroCarrinho($aFiltros,$aApelidoTb)
     $aFiltroCond        = inserirArrayCondMultiNivel($aFiltroCond,$aFiltroLote);
     $aFiltroCond        = inserirArrayCondMultiNivel($aFiltroCond,$aFiltroItem);
     $aFiltroCond        = inserirArrayCondMultiNivel($aFiltroCond,$aFiltroRefer);
+    echo "<pre>";
     var_dump($aFiltroCond);
 
     return convArrayMultiToCondSql($aFiltroCond);
