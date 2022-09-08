@@ -1037,7 +1037,7 @@ function convVlComTraco($valor)
     }
     return $valor;
 }
-function convArrayToCondSql($array)
+function convArrayToCondSql($arrayParam)
 {
     /*
     chaves do array: tabela( ou apelido),campo,valor,operador,logSemAspas,oper_cond
@@ -1045,9 +1045,9 @@ function convArrayToCondSql($array)
     */
     $vlFinal = '';
     $condicao = '';
-
-    //var_dump($array);
-    foreach($array as $chave=>$valor){
+     echo "<h1>array cond sql</h1>";
+    var_dump($arrayParam);
+    foreach($arrayParam as $chave=>$valor){
         $tabela      = $valor['tabela'];
         $campo		 = $valor['campo'];
         $campo       = convVlComTraco($campo);

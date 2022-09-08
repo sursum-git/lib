@@ -17,7 +17,7 @@ function montarFiltroCarrinho($aFiltros,$aApelidoTb)
 
 
     $aFiltroLote        = inserirArrayCond($aFiltroLote,$tabela,'lote',$rd,'=',false,true,'or');
-    $aFiltroLote        = inserirArrayCond($aFiltroLote,$tabela,'lote',$rp,'=',false,true,'or');
+    $aFiltroLote        = inserirArrayCond($aFiltroLote,$tabela,'lote',$rp,'=',false,true,'');
 
 
     $aFiltroItem        = inserirArrayCond($aFiltroItem,$tabela,'it-codigo',$itCodigo,'=',false,true,'and');
