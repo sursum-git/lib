@@ -1079,7 +1079,7 @@ function convArrayToCondSql($array)
 function convArrayMultiToCondSql($array)
 {
     /******************************************************************************************************
-    chaves do array: condicao,operadorCond,ordem
+    *  chaves do array: condicao,operadorCond,ordem
      * ainda não implementada a ordem
      *******************************************************************************************************/
     //ordenar array pelo campo ordem
@@ -1102,6 +1102,8 @@ function convArrayMultiToCondSql($array)
         }else{
             $textoCond = $condicao;
         }
+        echo "<h2>$textoCond</h2>";
+
         $condicao = util_incr_valor($condicao,$textoCond,$operadorCond);
     }
     return $condicao;
