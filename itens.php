@@ -10,4 +10,25 @@ ITEM;
 return $retorno;
 }
 
+function getRegItem($itCodigo,$campos='')
+{
+    $aReg = getReg('ems2','item','"it-codigo"',$itCodigo,$campos);
+    return $aReg;
+
+}
+
+
+function getDescrItem($itCod,$complemento='')
+{
+     $descItem = '';
+     $aDescItem		     = getRegItem($itCod,'"desc-item" as desc_item');
+    if(is_array($aDescItem)){
+        $descItem			= $aDescItem[0]['desc_item'];
+        $descItem = util_incr_valor($descItem,$complemento," ");
+        //echo "<h1>2</h1>";
+    }
+    return $descItem;
+
+}
+
 ?>

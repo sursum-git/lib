@@ -72,10 +72,8 @@ function montarFiltroNF($aFiltros,$aApelidoTb)
      dt_final,cod_rep, log_faturada, log_cancelada
     */
     $aFiltroCond = array();
-    $tabela ='nota-fiscal';
-    if(is_array($aApelidoTb) and isset($aApelidoTb[$tabela]) ){
-        $tabela = $aApelidoTb[$tabela];
-    }
+    $tabela = setApelidoTbFiltro($aApelidoTb,'nota-fiscal');
+
     $logNF       = false;
     $logPedido   = false;
     $logFiltrar  = true;
@@ -133,8 +131,26 @@ function getHtmlSitNF($sitNota,$descricao)
 
     
 }
-function setFiltroNFTpUsuario()
+function getFiltroNFTpUsuario($apelido,$logAplicarFiltro=false)
 {
+    $condicao = '';
+    if($apelido == ''){
+        $apelido = 'nf';
+    }
+    $apelido .= '.';
+    switch(getVarSessao('tipo_usuario_id')){
+        case getNumTipoUsuarioCliente():
+            $condicao = $apelido.'"cod-emitente" = '.getVarSessao('num_cliente');
+            break;
+        case getNumTipoUsuarioRepresentante():
+            $condicao = $apelido."\"no-ab-reppri\" = '".getVarSessao('nome_abrev_repres')."'";
+            break;
+        //outros tipos de usuários não tem filtro especifico
+    }
+    if($logAplicarFiltro){
+        setCondWhere($condicao);
+    }
+    return $condicao;
 
 }
 
@@ -146,12 +162,33 @@ function getVlFatMesCorrente()
     $dtFim = $aDt['dtFim'];
     $aFiltro = array();
     $aFiltro = inserirArrayCond($aFiltro,'nf','dt-emis-nota',"'$dtIni' and '$dtFim'",'between',true );
+    $aFiltro = inserirArrayCond($aFiltro,'nf','dt-cancela'," is null ",'',true );
+    $aFiltro = inserirArrayCond($aFiltro,'nat','tipo',"1",'<>',true );
+    $aFiltro = inserirArrayCond($aFiltro,'nat','cod-esp',"DP",'=' );
+    $aFiltro = inserirArrayCond($aFiltro,'nf','cod-estabel',"1",'=' );
+
     $cond    = convArrayToCondSql($aFiltro);
+    $cond    = util_incr_valor($cond,
+        getFiltroProgTipoUsuario('nf',
+            'nf'),
+        " AND ",
+        true);
+    $inner = 'inner join pub."ped-venda" ped on
+nf."nr-pedcli" = ped."nr-pedcli"
+and nf."nome-ab-cli" = ped."nome-abrev" 
+inner join pub."it-nota-fisc" item_nota
+on item_nota."cod-estabel" = nf."cod-estabel"
+and item_nota."serie" = nf."serie"
+and item_nota."nr-nota-fis" = nf."nr-nota-fis"
+inner join pub."natur-oper" nat
+on nat."nat-operacao" = nf."nat-operacao"
+';
     $aVl = getDados('unico',
-               '"nota-fiscal" as nf',
-           ' coalesce(sum("vl-tot-nota")|0) as vl_tot_nota',
+               '"nota-fiscal" nf',
+           ' coalesce(sum(item_nota."vl-tot-item")|0) as vl_tot_nota',
            $cond,
-           "ems2"
+           "ems2",
+            $inner
         );
    return getVlIndiceArray($aVl,'vl_tot_nota',0.0);
 }

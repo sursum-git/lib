@@ -1,14 +1,12 @@
-<?php 
+<?php
+//__NM____NM__FUNCTION__NM__// 
 function montarFiltroPedido($aFiltros,$aApelidoTb)
 { /* chaves aFiltros: 
      cod_estab,cod_emitente,nr_pedido,nf,dt_inicial,
      dt_final,nome_abrev_rep, sit_cred, sit_preco, sit_ped,cod_rep
     */
     $aFiltroCond = array();
-    $tabela ='ped-venda';
-    if(is_array($aApelidoTb) and isset($aApelidoTb[$tabela]) ){
-        $tabela = $aApelidoTb[$tabela];
-    }
+    $tabela =setApelidoTbFiltro($aApelidoTb,'ped-venda');
     $logNF       = false;
     $logPedido   = false;
     $logFiltrar  = true;
@@ -201,23 +199,113 @@ function getHtmlSitAval($sitAval)
     return ' <span class="'.$classe.'"> <i class="'.$avatar.'"></i>&nbsp;&nbsp; Pedido '.$descrSit.'</span>';
 
 }
-function setFiltroPedidoTpUsuario()
+function getFiltroPedidoTpUsuario($apelido='ped',$logAplicarFiltro=false)
 {
+    $condicao = '';
+    if($apelido == ''){
+        $apelido = 'ped';
+    }
+    $apelido .= '.';
+    switch(getVarSessao('tipo_usuario_id')){
+        case getNumTipoUsuarioCliente():
+            $condicao = $apelido.'"cod-emitente" = '.getVarSessao('num_cliente');
+            break;
+        case getNumTipoUsuarioRepresentante():
+            $condicao = $apelido."\"no-ab-reppri\" ='".getVarSessao('nome_abrev_repres')."'";
+            break;
+        //outros tipos de usuários não tem filtro especifico
+    }
+    if($logAplicarFiltro){
+        setCondWhere($condicao);
+    }
+    return $condicao;
+
 
 }
 
 function getTotPedAberto():float
 {
-    $aFiltro = array();
-    $aFiltro = inserirArrayCond($aFiltro,'ped','cod-sit-ped','2,3,6','not_in',true );
+    $aFiltro = array();	 
+    $aFiltro = inserirArrayCond($aFiltro,'ped','cod-sit-ped','1,2,4,5','in',true );
+	$aFiltro = inserirArrayCond($aFiltro,'ped','cod-estabel','1','=',false );
+	//$aFiltro = inserirArrayCond($aFiltro,'item_ped','cod-sit-item','1,2','in',true );
+    $aFiltro = inserirArrayCond($aFiltro,'nat','cod-esp','DP','=',false );
+	
+	
     $cond    = convArrayToCondSql($aFiltro);
-  $aVl = getDados('unico',
+    $cond    = util_incr_valor($cond,getFiltroProgTipoUsuario('pedido','ped'), " AND ",
+    true)        ;
+
+    /*' coalesce(sum(item_ped."qt-pedida" * item_ped."vl-preuni")|0) as vl_tot_ped',*/
+    $aVl = getDados('unico',
                '"ped-venda" as ped',
-           ' coalesce(sum("vl-tot-ped")|0) as vl_tot_ped',
-           $cond,
-           "ems2"
+      'coalesce(sum(ped."vl-liq-abe")|0) as vl_tot_ped',
+		   $cond,
+           "ems2",
+      'inner join pub."natur-oper" nat 
+        on nat."nat-operacao" = ped."nat-operacao"'
         );
    return getVlIndiceArray($aVl,'vl_tot_ped',0.0);
 
 }
+function getTranspETpFreteUltPedCliente($nomeAbrevCliente)
+{
+    //echo "<h1>nome abrev cliente: $nomeAbrevCliente   </h1>";
+    $aPed       = getPedETranspUltPedVendaPorCliente($nomeAbrevCliente);
+
+    $nrPedido   = getVlIndiceArrayDireto($aPed[0],'nr_pedido',0);
+    $nomeTransp = getVlIndiceArrayDireto($aPed[0],'nome_transp','');
+    $codTransp  = getCodTranspPorNomeAbrev($nomeTransp);
+    $tpFrete    = getTipoFretePedVendaExt($nrPedido);
+
+    return array('cod_transp'=>$codTransp,'tp_frete'=> convDescrTpFreteParaNumero($tpFrete));
+
+
+}
+function getPedETranspUltPedVendaPorCliente($nomeAbrevCliente)
+{
+    $nomeAbrevCliente = tratarAspasSimples($nomeAbrevCliente);
+    $campos = 'top 1 "nome-transp" as nome_transp,"nr-pedido" as nr_pedido';
+    $aReg = getDadosUltPedVendaPorCLiente($nomeAbrevCliente,$campos);
+    return $aReg;
+
+}
+function getRegPedVendaExt($chave,$valor,$campos)
+{
+    $aReg = getReg('espec', 'pub."ped-venda-ext"',$chave,$valor,
+        $campos);
+    return $aReg;
+}
+function getTipoFretePedVendaExt($nrPedido)
+{
+    $aReg = getRegPedVendaExt('"nr-pedido"',$nrPedido,'"tp-frete" as tp_frete');
+    return getVlIndiceArray($aReg,'tp_frete','');
+}
+
+function getDadosUltPedVendaPorCLiente($nomeAbrevCliente,$campos='')
+{
+    $nomeAbrevCliente = tratarAspasSimples($nomeAbrevCliente);
+    $aReg = getDados('unico','pub."ped-venda"',
+        $campos," \"nome-abrev\" = '$nomeAbrevCliente' 
+    and \"cod-sit-ped\" <> 6 order by \"nr-pedido\" desc",
+        'ems2');
+    return $aReg;
+}
+
+function getNomeTranspUltPedVendaPorCLiente($nomeAbrevCliente)
+{
+    $nomeAbrevCliente = tratarAspasSimples($nomeAbrevCliente);
+    $aReg = getDados('unico','pub."ped-venda"',
+    '"nome-transp" as nome_transp,"nr-pedido" as nr_pedido'," \"nome-abrev\" = '$nomeAbrevCliente' 
+    and \"cod-sit-ped\" <> 6 order by \"nr-pedido\" desc",
+    'ems2');
+    return getVlIndiceArray($aReg,'nome_transp','');
+}
+function getCodTranspUltPedVendaPorCLiente($nomeAbrevCliente)
+{
+    $nomeTransp = getNomeTranspUltPedVendaPorCLiente($nomeAbrevCliente);
+    return getCodTranspPorNomeAbrev($nomeTransp);
+}
+
 ?>
+

@@ -40,6 +40,19 @@ function convNomeTabProgress($tb)
     return str_replace('pub.pub.','pub.',$tb);
 
 }
+function convNomeCpProgress($cp)
+{
+    $tbComTraco = strpos($cp,'-');
+    $tbComAspas = strpos($cp, chr(34),1);
+    //echo " <h1>tabela:$tb  tb. com traco $tbComTraco - tb.com aspas: $tbComAspas</h1>";
+    if( $tbComTraco <> ''){
+        if( $tbComAspas == ''){
+            $cp = chr(34).$cp.chr(34);
+        }
+    }
+    return $cp;
+
+}
 function util_incr_valor($variavel,$incremento,$delimitador = ',',$logDesconsideraBranco=false)
 {
     $retorno = $variavel;
@@ -96,7 +109,7 @@ function buscarVlSequenciaEspec($sequencia,$tabela){
 	}
 	elseif (empty({seq})){
  		//echo "Select command didn't return data";
-        echo "<h1>To aqui</h1>";
+        //echo "<h1>To aqui</h1>";
 	}
 	else{
 		$valor = {seq[0][0]};
@@ -119,6 +132,7 @@ function incrementarVlSequenciaEspec($sequencia,$tabela){
 	}
 	return $valor;
 }
+
 
 function dataAtual()
 {
@@ -1037,33 +1051,40 @@ function convVlComTraco($valor)
     }
     return $valor;
 }
-function convArrayToCondSql($arrayParam)
+function convArrayToCondSql($arrayParam,$textoCondicao='')
 {
     /*
     chaves do array: tabela( ou apelido),campo,valor,operador,logSemAspas,oper_cond
 
     */
-    $vlFinal = '';
-    $condicao = '';
-    //foreach($arrayParam as $chave=>$valor){
-    foreach($arrayParam as $valor){
-        //echo "<h2>chave:$chave</h2>";
-        var_dump($valor);
-        echo "<br>";
+    $arrayNovo = array();
+    /*echo 'convArrayToCondSql(arrayParam):<br>';
+    var_dump($arrayParam);*/
 
-        $tabela      = $valor['tabela'];
-        $campo		 = $valor['campo'];
+    $vlFinal = '';
+    //foreach($arrayParam as $chave=>$valor){
+
+    if(!isset($arrayParam[0])){
+        $arrayNovo[] = $arrayParam;
+    }else{
+        $arrayNovo = $arrayParam;
+    }
+    $tam = count($arrayNovo);
+    //echo "quant: $tam<br>";
+    for($i=0;$i< $tam;$i++){
+        $tabela      = $arrayNovo[$i]['tabela'];
+        $campo		 = $arrayNovo[$i]['campo'];
         $campo       = convVlComTraco($campo);
-        $vl 		 = $valor['valor'];
-        $operador	 = $valor['operador'];
-        $logSemAspas = $valor['log_sem_aspas'];
-        $operCond	 = $valor['oper_cond'];
-        if($chave == 0){
+        $vl 		 = $arrayNovo[$i]['valor'];
+        $operador	 = $arrayNovo[$i]['operador'];
+        $logSemAspas = $arrayNovo[$i]['log_sem_aspas'];
+        $operCond	 = $arrayNovo[$i]['oper_cond'];
+        //echo "<h1>oper.cond:$operCond</h1>";
+        /*if($i == 0){
             $juncao = " where ";
         }else{
             $juncao =  $operCond;
-        }
-
+        }*/
         //$vlLog = getVlLogico($logSemAspas);
         if($logSemAspas){
             $vlFinal = $vl;
@@ -1074,11 +1095,11 @@ function convArrayToCondSql($arrayParam)
             $tabela = convVlComTraco($tabela);
             $campo = "{$tabela}.{$campo}";
         }
-        echo "<h1>campo: $campo - operador: $operador  - vl.final: $vlFinal</h1>";
-        $condicao = util_incr_valor($condicao,"$campo $operador $vlFinal",$juncao);
-
+        //echo "<h1>textocondicao=> $textoCondicao - campo: $campo - operador: $operador  - vl.final: $vlFinal</h1>";
+        $textoCondicao = util_incr_valor($textoCondicao,"$campo $operador $vlFinal"," $operCond ");
+        //echo "<h1>string cond: $textoCondicao  </h1>";
     }
-    return $condicao;
+    return $textoCondicao;
 }
 function convArrayMultiToCondSql($array)
 {
@@ -1089,32 +1110,39 @@ function convArrayMultiToCondSql($array)
     //ordenar array pelo campo ordem
 
     $vlFinal   = '';
-    $condicao  = '';
+    $condFinal  = '';
     $textoCond = '';
-    foreach($array as $chave=>$valor){
+    $iCont     = 0;
+
+    foreach($array as $valor){
+        $iCont++;
         $condicao     = $valor['condicao'];
         $operadorCond = $valor['operador'];
         $ordem        = $valor['ordem'];
         if(is_array($condicao)){
             $tamanho    = count($condicao);
+            $textoCond = '';
             foreach($condicao as $cond){
-                echo "<h1>é array</h1>";
-                var_dump($cond);
-                $textoCond  = util_incr_valor($textoCond,convArrayToCondSql($cond))  ;
-                echo "<h1>após conversão: $textoCond</h1>";
+                /*echo "<h1>é array</h1>";
+                var_dump($cond);*/
+
+                $textoCond  = convArrayToCondSql($cond,$textoCond)  ;
+                //echo "<h1>após conversão: $textoCond</h1>";
             }
             if($tamanho > 1){
                 $textoCond = "({$textoCond})";
             }
-            echo "<h2>$textoCond</h2>";
+            //echo "<h2>$textoCond</h2>";
         }else{
             $textoCond = $condicao;
         }
+        if($iCont == 1){
+            $operadorCond = " where ";
+        }
 
-
-        $condicao = util_incr_valor($condicao,$textoCond,$operadorCond);
+        $condFinal = util_incr_valor($condFinal,$textoCond," $operadorCond ",true);
     }
-    return $condicao;
+    return $condFinal;
 }
 function convertArrayEmUpdate($tabela,$aDados,$condicao,$cpsSemAspas='',$logPub=true)
 {
@@ -1153,7 +1181,7 @@ function convertArrayEmUpdate($tabela,$aDados,$condicao,$cpsSemAspas='',$logPub=
     $cmd = "update {$tabela} set $valores where $condicao ";
     return $cmd;
 }
-function convertArrayEmInsert($tabela,$aDados,$cpsSemAspas='')
+function convertArrayEmInsert($tabela,$aDados,$cpsSemAspas='',$logProgress=false)
 {
     //echo "<h1>oi</h1>";
     $aCampos = array_keys($aDados);
@@ -1163,19 +1191,25 @@ function convertArrayEmInsert($tabela,$aDados,$cpsSemAspas='')
         $tam = count($aCampos);
         //echo $tam;
         for($i=0;$i<$tam;$i++){
-            $campos  = util_incr_valor($campos,$aCampos[$i]);
+            $campos  = util_incr_valor($campos,convNomeCpProgress($aCampos[$i]) );
             //echo "<h1>$cpsSemAspas -> $i </h1>///////";
             if(getNumEmLista($cpsSemAspas,$i + 1)  == true){
                 $incr = $aDados[$aCampos[$i]];
             }else{
                 $incr = "'".$aDados[$aCampos[$i]]."'";
             }
+
             //echo "<h1>campo:$incr</h1>";
             $vlCampos = util_incr_valor($vlCampos,$incr)  ;
 
             //$vlCampos = util_incr_valor($vlCampos,"'".$aDados[$aCampos[$i]]."'")  ;
 
         }
+    }
+
+
+    if($logProgress){
+        $tabela = convNomeTabProgress($tabela);
     }
     $cmd = "insert into {$tabela}({$campos})values({$vlCampos})";
     return $cmd;
@@ -1336,24 +1370,136 @@ function getVlIndiceArray($array,$indice,$vlPadrao)
 }
 function getVlIndiceArrayDireto($array,$indice,$vlPadrao)
 {
-    if(isset($item[$indice])){
-        $retorno = $item[$indice];
+    if(isset($array[$indice])){
+        $retorno = $array[$indice];
     }else{
         $retorno = $vlPadrao;
     }
     return $retorno;
 
 }
+function setApelidoTbFiltro($aApelidoTb,$nomeTabela)
+{   $tabela = $nomeTabela;
+    if(is_array($aApelidoTb) and isset($aApelidoTb[$nomeTabela]) ){
+        $tabela = $aApelidoTb[$tabela];
+    }
+    return $tabela;
 
-function getCssComum()
+}
+function getArrayAlertSucesso()
+{
+    return array(
+        'title' => 'Título',
+        'type' => 'success',
+        'timer' => '4000',
+        'showConfirmButton' => false,
+        'position' => 'top-start',
+        'toast' => true
+    );
+}
+function getArrayAlertErro()
+{
+    return  array(
+        'title' => 'Título',
+        'type' => 'error',
+        'timer' => '5000',
+        'showConfirmButton' => true,
+        'position' => 'top-start',
+        'toast' => true
+    );
+}
+function desenharDescrEtqMobile($numEtiqueta,$itCodigo,$codRefer,$cortecomerc,$nrLote,$quantidade)
+{
+$descrItem = getDescrItem($itCodigo);
+$descrRef = getDescrRef($codRefer);
+$descrCorteComerc = getDescrCorteComerc($cortecomerc);
+if(strtolower($nrLote) =='rd'){
+        $classLote = "class='reprovado'";
+}else{
+        $classLote = "class='aprovado'";
+}
+$qt = formatarNumero($quantidade);
+$retorno = <<<CARRINHO
+<div class="container">            
+    <span class="lb">E T I Q U E T A : </span><span class="lb" style='font-size:16px;'> $numEtiqueta </span> 
+    <span $classLote><i class="bi bi-circle-fill"></i></span> <span class="lb" >Lote: $nrLote   </span><hr>
+	<i class="bi bi-basket2"></i>  $itCodigo - $descrItem <br>
+	Referência: $codRefer - $descrRef <br>
+	Corte Comercial: $cortecomerc - $descrCorteComerc <br>
+	<span class="lb">Qt.Metros: $qt</span>	
+</div>	
+CARRINHO;
+
+return $retorno;
+
+}
+function desenharDescrEtqMobileReserva($numEtiqueta,$itCodigo,$codRefer,$cortecomerc,$nrLote,$quantidade)
+{
+    $descrItem = getDescrItem($itCodigo);
+    $descrRef = getDescrRef($codRefer);
+    $descrCorteComerc = getDescrCorteComerc($cortecomerc);
+    if(strtolower($nrLote) =='rd'){
+        $classLote = "class='reprovado'";
+    }else{
+        $classLote = "class='aprovado'";
+    }
+    $qt = formatarNumero($quantidade);
+    $retorno = <<<CARRINHO
+    <div class="container">                     
+        <span class="lb">Etiqueta: </span><span class="lb" style='font-size:16px;'> $numEtiqueta </span> <span class="lb">Qt.Metros: $qt</span>
+        <a class="btn btn-primary" data-toggle="collapse" href="#$numEtiqueta" role="button" aria-expanded="false" aria-controls="$numEtiqueta">...</a>                  
+        <div class="collapse" id="$numEtiqueta" >
+             <span $classLote><i class="bi bi-circle-fill"></i></span> <span class="lb" >Lote: $nrLote   </span><hr>
+             <i class="bi bi-basket2"></i>  $itCodigo - $descrItem <br>
+             Referência: {cod_refer} - $descrRef <br>
+             Corte Comercial: $cortecomerc - $descrCorteComerc <br>                      
+        </div>
+    </div>
+      
+    	
+CARRINHO;
+
+    return $retorno;
+
+}
+
+function desenharDescrReserva($numReserva,$dtReserva,$hrReserva,$codEmitente,$dtValidade)
+{
+    $aCliente           = getDadosCliente($codEmitente,'"nome-emit" as nome_emit,"ind-cre-cli" as ind_cre_cli');
+    $nomeCliente        = $codEmitente."-".getVlIndiceArray($aCliente,'nome_emit','') ;
+    $indSitCred         = getVlIndiceArray($aCliente,'ind_cre_cli','') ;
+    $aSitCli            = getAvatarEClassClientePorSitCred($indSitCred);
+    $class              = $aSitCli['classe'];
+    $avatar             = $aSitCli['avatar'];
+    $botaoDetalhe       =  desenharLinkComoBotaoBS('primary','Detalhe','../cons_etq_reserva_mobile/','pequeno');
+    $botaoExcluir       =  desenharLinkComoBotaoBS('danger','Excluir','../bl_excluir_reserva/','pequeno');
+    $aLinks[] = array('href'=>'../cons_etq_reserva_mobile/?num_reserva_corrente='.$numReserva,'descricao'=>'Detalhe');
+    $aLinks[] = array('href'=>'../bl_excluir_reserva/?num_reserva_corrente='.$numReserva,'descricao'=>'Excluir Reserva');
+    $links  = '';
+    $links  = criarLinks($aLinks," | ");
+
+
+    $retorno = <<<RESERVA
+    <div class="container">            
+        <i class="bi bi-archive-fill"></i> <span class="lb">R E S E R V A : </span><span class="lb" style='font-size:16px;'> $numReserva  </span><hr> 
+        <span class="$class"><i class="$avatar" ></i> $nomeCliente </span><br>
+        <span><i class="bi bi-calendar-week-fill"></i></span> <span  >Dt.Reserva: $dtReserva($hrReserva)   </span><span class="lb">Dt.Validade:$dtValidade</span><br>        
+        <br>
+         $links	
+    </div>	
+RESERVA;
+    return $retorno;
+
+}
+function getCssComum($titulo='')
 {
 
     $css= <<<CSS
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Pedidos</title>
+    <title>$titulo</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
     <style>
         .lb{font-weight: bold; text-align:right;}        
@@ -1378,5 +1524,82 @@ function getCssComum()
 CSS;    
 
     return $css;
+}
+//funções para desenhar objetos Bootstrap versão 5.2
+function desenharAlertBS($tipo,$texto)
+{
+    /*IMPORTANTE: a página que utilizar esta função deve ter a chamada do boostrap . A função getCssComum possui esta chamada.
+     * tipo da versão 5.2 boostrap
+     * Primary(azul escuro)
+     * Secundary(cinza claro)
+     * Success(verde claro)
+     *danger(vermelho claro)
+     * warning(amarelo claro)
+     * info(azul claro)
+     * light(transparente)
+     * dark(cinza escuro)
+     * */
+    $objeto = <<<OBJ
+    <div class="alert alert-$tipo" role="alert">
+     $texto
+    </div>
+OBJ;
+    return $objeto;
+}
+function desenharLinkComoBotaoBS($tipo,$texto,$link,$tamanho='',$target='_self')
+{
+    // os tipos disponiveis são os mesmos do tipo da função desenharAltertBS
+    switch (strtolower($tamanho)){
+        case 'grande':
+            $classTam = "btn-lg";
+            break;
+        case 'pequeno':
+            $classTam = "btn-sm";
+            break;
+        default:
+            $classTam = '';
+    }
+
+
+    $objeto = <<<OBJ
+        <a class="btn btn-$tipo" href="$link" role="button" $classTam target="$target">$texto</a>
+OBJ;
+    return $objeto;
+}
+function desenharSpinner($texto,$tipo='',$style='style="width: 3rem; height: 3rem;"',$formato='spinner-border')
+{
+    /*formatos-> spinner-border , spinner-grow
+     * no caso do spinner-border pode-se passar a grossura. exemplo:  spinner-border m-5
+     * tipos -> text-primary ,  text-secondary , text-success, text-danger, text-warning,text-info,text-light,text-dark
+     *
+     *
+     * */
+    $objeto = <<<OBJ
+    <div class="$formato $tipo" $style role="status">
+        <span class="sr-only">$texto </span>
+    </div>
+OBJ;
+    return $objeto;
+}
+function dividirTexto($texto,$limite,$logHtml=true)
+{
+    $cicloLimite = 0;
+    $novoTexto = '';
+    $tamanho =strlen($texto);
+    for($i=0;$i<$tamanho;$i++){
+        $caracter = substr($texto,$i,1);
+        $cicloLimite += 1;
+        if($cicloLimite >= $limite and $caracter == ' '){
+            if($logHtml){
+                $caracter = "<br>";
+            }else{
+                $caracter = "\n";
+            }
+            $cicloLimite = 0;
+        }
+        $novoTexto = util_incr_valor($novoTexto,$caracter,'');
+
+    }
+    return $novoTexto;
 }
 ?>

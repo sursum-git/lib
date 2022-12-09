@@ -23,10 +23,10 @@ function iniciarLogDb($apl,$usuarioLogId)
     return $id;
 }
 
-function getUsuarioCorrente()
+/*function getUsuarioCorrente()
 {
         return getLoginCorrente();
-}
+}*/
 function setIdCorrenteLogDb($id)
 {
     $_SESSION['log_db']['id_corrente'] = $id;
@@ -107,7 +107,7 @@ function inserirLogDb($titulo,$descricaoParam='',$funcao='',$id=0)
 function getGerarLogUsuarioCorrente($apl='')
 {
     //$id = 0;
-    $usuario = strtolower(getLoginCorrente()) ;
+    $usuario = strtolower(getUsuarioCorrente()) ;
     if($apl == ''){
         $apl= $this->Ini->nm_cod_apl;
     }

@@ -9,9 +9,7 @@ function getNomeAbrevRepres(int $codRep)
 }
 function getRegRepres(int $codRep, string $campos='')
 {
-    $aReg = getReg('ems2','repres','"cod-rep"',$codRep,$campos);
-    return $aReg;
-
+    return getReg('ems2','repres','"cod-rep"',$codRep,$campos);
 }
 
 ?>

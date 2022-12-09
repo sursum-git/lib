@@ -51,8 +51,11 @@ function getODBCDireto($conexaoSC)
             $retorno = $base =='producao'? 'log_db':'log_db_tst';
             break;
         case 'seg':
-            $retorno = $base =='producao'? 'conn_mysql':'conn_mysql_tst';
-            break;    
+            $retorno = $base =='producao'? 'seg':'seg_tst';
+            break;
+        case 'aux':
+            $retorno = $base =='producao'? 'aux':'aux_tst';
+            break;
         default:
             $retorno = $conexaoSC;
     }
@@ -97,9 +100,15 @@ function retornoSimplesTb01($tabParam, $campos, $condicao, $conexao = '', $inner
         case 'espec':
             sc_lookup(meus_dados, $sql, "espec");
             break;
+        case 'especw':
+            sc_lookup(meus_dados, $sql, "especw");
+            break;
         case 'ems2':
             sc_lookup(meus_dados, $sql, "ems2");            
-            break;        
+            break;
+        case 'ems2w':
+            sc_lookup(meus_dados, $sql, "ems2w");
+            break;
         case 'multi':
             sc_lookup(meus_dados, $sql, "multi");
             break;        
@@ -107,8 +116,11 @@ function retornoSimplesTb01($tabParam, $campos, $condicao, $conexao = '', $inner
             sc_lookup(meus_dados, $sql, "log_db");
             break;        
         case 'seg':
-            sc_lookup(meus_dados, $sql, "conn_mysql");
-            break;        
+            sc_lookup(meus_dados, $sql, "seg");
+            break;
+        case 'aux':
+            sc_lookup(meus_dados, $sql, "aux");
+            break;
         default:
             sc_lookup(meus_dados, $sql);
     }
@@ -214,9 +226,9 @@ function getTipoConexao($conexao)
 {
     switch ($conexao) {
         case 'espec':
-        case 'comum':
-        case 'ima':
-        case 'med':
+        case 'especw':
+        case 'ems2':
+        case 'ems2w':
         case 'multi':
         case 'ems5':
             $tipoConexao = 'progress';
@@ -229,7 +241,8 @@ function getTipoConexao($conexao)
         case 'wdfe':
         case 'cfsc':
         case 'tss':
-        case 'seg':    
+        case 'seg':
+        case 'aux':
             $tipoConexao = 'sql';
             break;
 
@@ -266,14 +279,19 @@ function retornoMultReg($tabela, $campos, $condicao, $conexao = '', $inner = '',
     switch ($conexao) {
         case 'ems5':
             sc_select(dados, $sql, "ems5");
-
             break;
         case 'espec':
             sc_select(dados, $sql, "espec");
-            break;        
+            break;
+        case 'especw':
+            sc_select(dados, $sql, "especw");
+            break;
         case 'ems2':
             sc_select(dados, $sql, "ems2");            
-            break;        
+            break;
+        case 'ems2w':
+            sc_select(dados, $sql, "ems2w");
+            break;
         case 'multi':
             sc_select(dados, $sql, "multi");
             break;        
@@ -281,8 +299,11 @@ function retornoMultReg($tabela, $campos, $condicao, $conexao = '', $inner = '',
             sc_select(dados, $sql, "log_db");
             break;        
         case 'seg':
-            sc_select(dados, $sql, "conn_mysql");
-            break;            
+        sc_select(dados, $sql, "seg");
+        break;
+        case 'aux':
+            sc_select(dados, $sql, "aux");
+            break;
         default:
             sc_select(dados, $sql);
     }
@@ -615,10 +636,15 @@ function getRegsSqlLivre($sql,$campos,$conexao,$logUTF8=0,$logSql=0)
         case 'espec':
             sc_select(dados, $sql, "espec");
             break;
-        
+        case 'especw':
+            sc_select(dados, $sql, "especw");
+            break;
         case 'ems2':
-            sc_select(dados, $sql, "ima");            
-            break;        
+            sc_select(dados, $sql, "ems2");
+            break;
+        case 'ems2w':
+            sc_select(dados, $sql, "ems2w");
+            break;
         case 'multi':
             sc_select(dados, $sql, "multi");
             break;        
@@ -918,6 +944,13 @@ function acertarAspasSimplesInsert($cmd)
     return $novoComando;
 }*/
 
-
+function incrementarVlSequenciaProgress($conexao,$sequencia,$tabela)
+{
+    $sql =  <<<SQL
+            SELECT pub."$sequencia".NEXTVAL as id from pub."_File" WHERE "_File-Name" = '$tabela'
+SQL;
+    $aReg = getRegsSqlLivre($sql,'id',$conexao);
+    return getVlIndiceArray($aReg,'id',0);
+}
 
 ?>

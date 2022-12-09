@@ -214,6 +214,40 @@ function getAgora($formato="en")
     }
     return $agora;
 }
+function getHoje($formato="en",$qtDiasSomar=0)
+{
+    $hoje = '';
+    switch ($formato){
+        case 'en':
+            $hoje = date('Y-m-d');
+            $formatoSc = 'aaaa-mm-dd';
+            break;
+        case 'br':
+            $hoje = date('d/m/Y');
+            $formatoSc = "dd/mm/aaaa";
+            break;
+        default:
+            $hoje =date($formato);
+            $formatoSc = $formato;
+
+
+    }
+    if($qtDiasSomar <> 0){
+        if($qtDiasSomar < 0){
+            $sinal = "-";
+        }else{
+            $sinal = "+";
+        }
+        //echo "entrei aqui - sinal( $sinal ) - dias: $qtDiasSomar";
+        $retorno = sc_date($hoje, $formatoSc, $sinal, $qtDiasSomar, 0, 0);
+
+    }else{
+        $retorno = $hoje;
+    }
+
+    return $retorno;
+}
+
 
 function compararDtHoraForm($dtHrForm,$dtHrPhp)
 {
@@ -225,5 +259,65 @@ function convDataEnToBr($data)
 {
     return sc_date_conv($data,"aaaa-mm-dd","dd/mm/aaaa");
 }
+function convDataTimeEnToBr($dataHora)
+{
+    $date = new DateTime($dataHora);
+  return  $date->format('d/m/Y H:i:s');
 
+}
+function convHoraEmIntProgress($hora='')
+{
+
+    $agora   = new DateTime($hora);
+    $hora    = $agora->format('H');
+    $minuto  = $agora->format('i');
+    $segundo = $agora->format('s');
+
+    $tempoTotal = 24 * 60 * 60 ;
+    $intAgora = $hora * 60 * 60 + $minuto * 60 + $segundo;
+    //$intAgora = $tempoTotal - $intAgora;
+
+    return $intAgora;
+
+
+
+}
+function convIntProgressEmHora($intProgress)
+{
+    $hora = $intProgress / 3600;
+    $horaExata = intval($hora) ;
+    $horasFormatada = str_pad($horaExata , 2 , '0' , STR_PAD_LEFT);
+    //echo $horaExata;
+    $minutos = ($intProgress % 3600) / 60 ;
+    $minutosExato = intval($minutos);
+    $minutosFormatado = str_pad($minutosExato , 2 , '0' , STR_PAD_LEFT);
+    //echo $minutosExato;
+    $seg = ($minutos - $minutosExato) * 60;
+    $seg = round($seg,0);
+    $segundosFormatado = str_pad($seg , 2 , '0' , STR_PAD_LEFT);
+
+
+    return "$horasFormatada:$minutosFormatado:$segundosFormatado";
+
+
+
+}
+
+/*function convHoraEmIntProgress($hora='')
+{
+
+    $agora   = new DateTime($hora);
+    $hora    = $agora->format('h');
+    $minuto  = $agora->format('i');
+    $segundo = $agora->format('s');
+
+    $tempoTotal = 24 * 60 * 60 ;
+    $intAgora = $hora * 60 * 60 + $minuto * 60 + $segundo;
+    $intAgora = $tempoTotal - $intAgora;
+
+    return $intAgora;
+
+
+
+}*/
 ?>
